@@ -48,7 +48,7 @@ export default class AuthService {
         password: hashedPassword,
       });
       this.logger.silly('Generating JWT');
-      const token = this.generateToken(userRecord);
+      const token = this.generateJSONToken(userRecord);
 
       if (!userRecord) {
         throw new Error('User cannot be created');
@@ -86,7 +86,7 @@ export default class AuthService {
     if (validPassword) {
       this.logger.silly('Password is valid!');
       this.logger.silly('Generating JWT');
-      const token = this.generateToken(userRecord);
+      const token = this.generateJSONToken(userRecord);
 
       const user = userRecord.toObject();
       Reflect.deleteProperty(user, 'password');
@@ -97,6 +97,26 @@ export default class AuthService {
       return { user, token };
     } else {
       throw new Error('Invalid Password');
+    }
+  }
+
+
+  public generateJSONToken(user : any): string {
+    // Token is valid for 1 hour...
+    return jwt.sign({data: user.email, exp: Math.floor(Date.now() / 1000) + (60 * 60)},
+      process.env.TOKEN_SECRET);
+  }
+
+
+  public verifyJSONToken(token: string): { message: string, flag: boolean } {
+    try {
+      let verify = jwt.verify(token, process.env.TOKEN_SECRET);
+      return {flag: true, message: verify.data};
+    } catch (e) {
+      if (e.message === "jwt expired") {
+        e.message = "Session Expired(jwt), Please Login to continue.";
+      }
+      return {flag: false, message: e.message};
     }
   }
 

@@ -64,8 +64,11 @@ export default (app: Router) => {
   );
 
 
+   
+
+
   route.get(
-    '/getcontact',middlewares.isAuth,middlewares.attachCurrentUser,
+    '/getcontact',middlewares.checkToken,
     async (req: Request, res: Response, next: NextFunction) => {
       const logger:Logger = Container.get('logger');
       logger.debug('Calling Sign-Up endpoint with body: %o', req.body );

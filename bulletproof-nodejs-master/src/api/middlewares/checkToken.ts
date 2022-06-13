@@ -1,5 +1,5 @@
 import {Container} from "typedi";
-import Common from "@/services/common";
+import AuthService from '@/services/auth';
 import {Request} from "express";
 import {Logger} from 'winston';
 
@@ -18,7 +18,7 @@ const checkToken = async (req: Request, res, next) => {
       Logger.error(`Token not found.`);
       return res.status(200).json({success: false, result: {error: "Token not found."}});
     }
-    let result: { message: string, flag: boolean } = Container.get(Common).verifyJSONToken(token);
+    let result: { message: string, flag: boolean } = Container.get(AuthService).verifyJSONToken(token);
     if (result.flag) {
       req['userEmail'] = result.message;
       next();
