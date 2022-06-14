@@ -28,8 +28,8 @@ export default (app: Router) => {
       logger.debug('Calling Sign-Up endpoint with body: %o', req.body );
       try {
         const authServiceInstance = Container.get(AuthService);
-        const { user, token } = await authServiceInstance.SignUp(req.body as IUserInputDTO);
-        return res.status(201).json({ user, token });
+        const result = await authServiceInstance.SignUp(req.body as IUserInputDTO);
+        return res.status(201).json(result);
       } catch (e) {
         logger.error('🔥 error: %o', e);
         return next(e);
@@ -63,6 +63,52 @@ export default (app: Router) => {
     },
   );
 
+  route.post(
+    '/updatecontact',
+    celebrate({
+      body: Joi.object({
+        ID:Joi.string().required(),
+        Email: Joi.string().required(),
+        Mobile: Joi.string().required(),
+        ProductID: Joi.string().required(),
+        Token: Joi.string().required(),
+      }),
+    }),
+    async (req: Request, res: Response, next: NextFunction) => {
+      const logger:Logger = Container.get('logger');
+      logger.debug('Calling Sign-Up endpoint with body: %o', req.body );
+      console.log(req.body);
+      try {
+        const result= await Container.get(ContactService).UpdateContact(req.body.ID,req.body as IContact);
+        return res.status(201).json({ result});
+      } catch (e) {
+        logger.error('🔥 error: %o', e);
+        return next(e);
+      }
+    },
+  );
+
+   
+  route.post(
+    '/deletecontact',
+    celebrate({
+      body: Joi.object({
+        ID:Joi.string().required()
+      }),
+    }),
+    async (req: Request, res: Response, next: NextFunction) => {
+      const logger:Logger = Container.get('logger');
+      logger.debug('Calling Sign-Up endpoint with body: %o', req.body );
+      console.log(req.body);
+      try {
+        const result= await Container.get(ContactService).DeleteContact(req.body.ID);
+        return res.status(201).json({ result});
+      } catch (e) {
+        logger.error('🔥 error: %o', e);
+        return next(e);
+      }
+    },
+  );
 
    
 
@@ -83,6 +129,7 @@ export default (app: Router) => {
     },
   );
 
+ 
 
 
   route.post(
