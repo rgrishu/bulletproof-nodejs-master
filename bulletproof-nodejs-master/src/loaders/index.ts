@@ -7,7 +7,7 @@ import Logger from './logger';
 import './events';
 
 export default async ({ expressApp }) => {
-  const mongoConnection = await mongooseLoader();
+  const mongoConnection = await mongooseLoader(1);
   Logger.info('✌️ DB loaded and connected!');
 
   /**
@@ -29,12 +29,18 @@ export default async ({ expressApp }) => {
     // Notice the require syntax and the '.default'
     model: require('../models/Contact').default,
   };
+  const DbMEssageModal = {
+    name: 'DBMessage',
+    // Notice the require syntax and the '.default'
+    model: require('../models/DbReponseModel').default,
+  };
   // It returns the agenda instance because it's needed in the subsequent loaders
   const { agenda } = await dependencyInjectorLoader({
     mongoConnection,
     models: [
       userModel,
-      contatModal
+      contatModal,
+      DbMEssageModal
       //
       // salaryModel,
       // whateverModel

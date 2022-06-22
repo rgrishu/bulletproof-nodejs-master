@@ -154,6 +154,23 @@ export default (app: Router) => {
       }
     },
   );
+  route.post(
+    '/GenAdd',
+    celebrate({
+      body: Joi.object({
+        clname: Joi.string().required(),
+        data: Joi.any().required(),
+      }),
+    }),
+    async (req: Request, res: Response, next: NextFunction) => {
+      const logger:Logger = Container.get('logger');
+      logger.debug('Calling Sign-Up endpoint with body: %o', req.body );
+      console.log(req.body);
+      var result:any;
+      result=req.body
+      return res.status(201).json({result});
+    },
+  );
 
   /**
    * @TODO Let's leave this as a place holder for now

@@ -15,3 +15,7 @@ export class Response implements IResponse{
   data: any;
 
 }
+export interface IDbMessage {
+  Code:string,
+  Message:string
+}

@@ -1,8 +1,9 @@
 import { Service, Inject } from 'typedi';
-import events from '@/subscribers/events';
 import { IContact } from '@/interfaces/IContact';
 import { IResponse,Response } from '@/interfaces/IResponse';
-import {encrypt,decrypt} from '@/Utility/Encryption'
+import {encrypt,decrypt} from '@/Utility/Encryption';
+import getMessage from '@/services/getMessage';
+import { Container } from 'typedi';
 
 
 @Service()
@@ -20,10 +21,11 @@ export default class ContactService {
       const contactRecord = await this.contactModel.create(contactInput);
       if (!contactRecord) {
         response.statusCode = -1;
-        response.message = 'Contact Created Filed';
+        response.message = "Failed";
       } else {
         response.statusCode = 1;
-        response.message = 'Contact Created Sucessfull';
+        
+        response.message = await Container.get(getMessage).getMessages("SS");
       }
       this.logger.info(contactRecord);
       return response;
@@ -76,6 +78,63 @@ export default class ContactService {
     try {
       var response = new Response(); 
       const contactRecord: IContact[] = await this.contactModel.find({});
+      if (contactRecord.length === 0) {
+        response.statusCode = -1;
+        response.message = 'Contact Not Found';
+      }
+      else
+      {
+        response.statusCode = 1;
+        response.message = 'Success';
+        response.data=contactRecord;
+      }
+      this.logger.info(contactRecord);
+      return response;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+  public async FilterContacts(contactInput: IContact): Promise<any> {
+    try {
+      var response = new Response(); 
+      let check = {}
+      if(contactInput.Name.length != 0)
+      {
+        check={Name:contactInput.Name}
+      }
+      if(contactInput.Email.length != 0)
+      {
+        check={Name:contactInput.Name,Email:contactInput.Email}
+      }
+      const contactRecord: IContact[] = await this.contactModel.find({check});
+      if (contactRecord.length === 0) {
+        response.statusCode = -1;
+        response.message = 'Contact Not Found';
+      }
+      else
+      {
+        response.statusCode = 1;
+        response.message = 'Success';
+        response.data=contactRecord;
+      }
+      this.logger.info(contactRecord);
+      return response;
+    } catch (e) {
+      this.logger.error(e);
+      throw e;
+    }
+  }
+  public async Filtermtwo(contactInput: IContact): Promise<any> {
+    try {
+      var response = new Response(); 
+      let param: IContact;
+      if(contactInput.Name.length != 0)
+      {
+        param["Name"] = contactInput.Name;
+      }
+
+      const contactRecord: IContact[] = await this.contactModel.find({param});
       if (contactRecord.length === 0) {
         response.statusCode = -1;
         response.message = 'Contact Not Found';
