@@ -17,4 +17,13 @@ export function encrypt(text) {
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
  }
+ export function  removeEmptyObjectFromJson(jsonData:any) {
+  const filteredData = Object.entries(jsonData).reduce((x, [k, v]) => {
+    if (v && k!=='action') { // not ( null, undefined, empty string)
+        x[k] = v;
+    }
+    return x;
+  }, {} as any);
+  return filteredData.toString();
+ }
 

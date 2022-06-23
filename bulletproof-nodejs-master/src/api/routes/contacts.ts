@@ -17,16 +17,16 @@ export default (app: Router) => {
     celebrate({
       body: Joi.object({
         action: Joi.string().required(),
-        ID:Joi.string().required(),
-        ProductID: Joi.string().required(),
-        Token: Joi.string().required(),
-        Name: Joi.string().required(),
-        Mobile: Joi.string().required(),
-        Email: Joi.string().required(),
-        State: Joi.string().required(),
-        City: Joi.string().required(),
-        ZipCode: Joi.string().required(),
-        Address: Joi.string().required(),
+        ID:Joi.allow(),
+        ProductID: Joi.allow(),
+        Token: Joi.allow(),
+        Name: Joi.allow(),
+        Mobile:Joi.allow(),
+        Email: Joi.allow(),
+        State: Joi.allow(),
+        City: Joi.allow(),
+        ZipCode: Joi.allow(),
+        Address: Joi.allow(),
       }),
     }),
     
@@ -53,7 +53,7 @@ export default (app: Router) => {
         return res.status(201).json({ result});
       }
       else if (req.body.action=="info"){
-        const result= await Container.get(ContactService).Filtermtwo(req.body as IContact);
+        const result= await Container.get(ContactService).InfoContact(req.body as IContact);
         return res.status(201).json({ result});
       }
       else
