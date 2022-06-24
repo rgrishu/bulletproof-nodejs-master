@@ -6,6 +6,7 @@ const Contact = new mongoose.Schema({
   ProductID: {
     type: String,
     required: true,
+   
   },
   Token: {
     type: String,
@@ -18,6 +19,7 @@ const Contact = new mongoose.Schema({
   Mobile: {
     type: String,
     required: true,
+    unique: true
   },
   Email: {
     type: String,

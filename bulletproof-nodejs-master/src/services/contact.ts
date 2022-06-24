@@ -16,25 +16,27 @@ export default class ContactService {
 
   
   public async AddContact(contactInput: IContact): Promise<IResponse> {
+    var response = new Response();
+      response.statusCode = -1;
+      response.message = "Failed";
     try {
       //const contactRecord = await this.contactModel.create(contactInput);
-      var response = new Response(); 
+      
       contactInput.Token=encrypt(contactInput.Token)?.encryptedData;
-      const contactRecord = await this.contactModel.create(contactInput);
+      //const contactRecord = await this.contactModel.create(contactInput);
+      const contactRecord = await this.contactModel(contactInput);
+      await contactRecord.save();
       if (!contactRecord) {
-        response.statusCode = -1;
         response.message = "Failed";
       } else {
         response.statusCode = 1;
-        
         response.message = await Container.get(getMessage).getMessages("SS");
       }
       this.logger.info(contactRecord);
-      return response;
     } catch (e) {
-      this.logger.error(e);
-      throw e;
+      response.message=e.message;
     }
+    return response;
   }
   public async UpdateContact(id: string, contactInput: IContact): Promise<any> {
     try {
